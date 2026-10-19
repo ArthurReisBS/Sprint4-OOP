@@ -379,16 +379,47 @@ atenção e 3 normais, mais o que tiver sido criado pelos exemplos acima.
 
 ## 7. Requisições funcionando
 
-_(a preencher: pelo menos 6 prints, cobrindo CRUD e relatório)_
+Requisições feitas com cURL contra a API rodando no Oracle da FIAP, com os dados do
+script da Sprint 3. As imagens estão na pasta prints.
 
-| # | Requisição | Print |
+| # | Requisição | Status |
 | --- | --- | --- |
-| 1 | `POST /api/trechos` → 201 | |
-| 2 | `GET /api/trechos` → 200 | |
-| 3 | `GET /api/trechos/{id}` inexistente → 404 | |
-| 4 | `PUT /api/trechos/{id}` → 200 | |
-| 5 | `DELETE /api/trechos/{id}` → 204 | |
-| 6 | `POST /api/relatorios` → 201 | |
+| 1 | POST /api/trechos | 201 |
+| 2 | GET /api/trechos/prioridade/URGENTE | 200 |
+| 3 | GET /api/trechos/99, trecho que não existe | 404 |
+| 4 | PUT /api/trechos/10 | 200 |
+| 5 | DELETE /api/trechos/9 | 204 |
+| 6 | POST /api/relatorios | 201 |
+
+1. POST /api/trechos cria o trecho e devolve 201 com o corpo salvo e o id gerado pelo
+Oracle.
+
+![POST /api/trechos](prints/01-post-trecho.png)
+
+2. GET /api/trechos/prioridade/URGENTE lista os trechos urgentes pela altura estimada de
+hoje. O trecho criado no print 1 já aparece: 18 cm de Brachiaria medidos nove dias antes
+passam de 30 cm.
+
+![GET /api/trechos/prioridade/URGENTE](prints/02-get-trechos-urgentes.png)
+
+3. GET de um id que não existe devolve 404 com o corpo de erro do GlobalExceptionHandler.
+
+![GET /api/trechos/99](prints/03-get-trecho-inexistente.png)
+
+4. PUT /api/trechos/10 atualiza a altura medida e devolve 200 com o trecho atualizado.
+
+![PUT /api/trechos/10](prints/04-put-trecho.png)
+
+5. DELETE /api/trechos/9 apaga um trecho sem histórico de intervenções e devolve 204,
+sem corpo.
+
+![DELETE /api/trechos/9](prints/05-delete-trecho.png)
+
+6. POST /api/relatorios classifica todos os trechos, grava o relatório e devolve 201. O
+resumo nomeia os urgentes do mais alto para o mais baixo; o trecho atualizado no print 4
+lidera com 48 cm estimados (27,3 cm medidos há cinco dias, a 4,2 cm por dia).
+
+![POST /api/relatorios](prints/06-post-relatorio.png)
 
 ---
 
