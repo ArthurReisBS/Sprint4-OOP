@@ -2,6 +2,8 @@ package br.com.motiva.model;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -68,8 +70,12 @@ public class TrechoRodovia {
     @Column(name = "DATA_ULTIMA_INTERVENCAO")
     private LocalDate dataUltimaIntervencao;
 
+    // o JPA exige este construtor, e o @JsonCreator faz o Jackson usar ele
+    // mais os setters: sem isso o Jackson 3 escolhe o construtor publico, e
+    // um campo primitivo ausente no JSON vira erro de leitura do corpo, em
+    // vez de cair no valor padrao e passar pelo Bean Validation
+    @JsonCreator
     protected TrechoRodovia() {
-        // exigido pelo JPA
     }
 
     public TrechoRodovia(String rodovia, double kmInicial, double kmFinal,

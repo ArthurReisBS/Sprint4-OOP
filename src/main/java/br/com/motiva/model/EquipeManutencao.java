@@ -2,6 +2,8 @@ package br.com.motiva.model;
 
 import org.hibernate.type.NumericBooleanConverter;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -50,8 +52,12 @@ public class EquipeManutencao {
     @Column(name = "DISPONIVEL", nullable = false, columnDefinition = "NUMBER(1)")
     private boolean disponivel = true;
 
+    // o JPA exige este construtor, e o @JsonCreator faz o Jackson usar ele
+    // mais os setters: sem isso o Jackson 3 escolhe o construtor publico, e
+    // um campo primitivo ausente no JSON vira erro de leitura do corpo, em
+    // vez de cair no valor padrao e passar pelo Bean Validation
+    @JsonCreator
     protected EquipeManutencao() {
-        // exigido pelo JPA
     }
 
     public EquipeManutencao(String nome, TipoEquipe tipo,
