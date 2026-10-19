@@ -1,6 +1,9 @@
 package br.com.motiva.model;
 
+import org.hibernate.type.NumericBooleanConverter;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -30,7 +33,10 @@ public class EquipeManutencao {
     @Column(name = "QT_INTEGRANTES", nullable = false, columnDefinition = "NUMBER(3)")
     private int quantidadeIntegrantes;
 
-    // Oracle < 23ai nao tem BOOLEAN: a coluna e NUMBER(1), 0 ou 1
+    // a coluna e NUMBER(1), 0 ou 1. O conversor faz o Hibernate gravar e
+    // comparar 0/1 em qualquer banco: sem ele, findByDisponivelTrue vira
+    // "= true", e o NUMBER nao se compara com BOOLEAN
+    @Convert(converter = NumericBooleanConverter.class)
     @Column(name = "DISPONIVEL", nullable = false, columnDefinition = "NUMBER(1)")
     private boolean disponivel = true;
 
