@@ -267,14 +267,34 @@ de try/catch:
 
 ### Derived queries
 
-O Spring Data monta o SQL de cada método a partir do nome dele:
+Nenhum Repository tem SQL. O Spring Data monta a consulta de cada método a partir do
+nome dele, e o Hibernate gera o SQL do Oracle. A coluna da direita mostra o filtro que
+cada nome produz.
 
-| Repository | Método |
-| --- | --- |
-| `TrechoRodoviaRepository` | _(a preencher)_ |
-| `EquipeManutencaoRepository` | _(a preencher)_ |
-| `IntervencaoOperacionalRepository` | _(a preencher)_ |
-| `RelatorioPrioridadeRepository` | _(a preencher)_ |
+| Repository | Método | Filtro gerado |
+| --- | --- | --- |
+| TrechoRodoviaRepository | findByRodoviaOrderByKmInicialAsc | WHERE rodovia = ? ORDER BY km_inicial |
+| | findByEspeciePredominante | WHERE especie_predominante = ? |
+| | findByAlturaVegetacaoCmGreaterThanEqual | WHERE altura_vegetacao_cm >= ? |
+| | findByDataUltimaIntervencaoIsNull | WHERE data_ultima_intervencao IS NULL |
+| | existsByRodoviaAndKmInicialAndKmFinal | WHERE rodovia = ? AND km_inicial = ? AND km_final = ? |
+| EquipeManutencaoRepository | findByTipo | WHERE tipo = ? |
+| | findByDisponivelTrue | WHERE disponivel = 1 |
+| | findByQuantidadeIntegrantesGreaterThanEqual | WHERE qt_integrantes >= ? |
+| IntervencaoOperacionalRepository | findByTrechoIdOrderByDataExecucaoAsc | WHERE trecho_id = ? ORDER BY data_execucao |
+| | findByEquipeId | WHERE equipe_id = ? |
+| | findByDataExecucaoBetween | WHERE data_execucao BETWEEN ? AND ? |
+| | findByCustoGreaterThanEqual | WHERE custo >= ? |
+| | existsByTrechoId, existsByEquipeId | WHERE trecho_id = ? / WHERE equipe_id = ? |
+| RelatorioPrioridadeRepository | findAllByOrderByDataGeracaoDesc | ORDER BY data_geracao DESC |
+| | findByDataGeracaoBetweenOrderByDataGeracaoAsc | WHERE data_geracao BETWEEN ? AND ? ORDER BY data_geracao |
+| | findByQtUrgenteGreaterThanEqual | WHERE qt_urgente >= ? |
+
+Os métodos exists servem aos Services. Antes de inserir um trecho, o Service confere se a
+faixa já existe; antes de apagar um trecho ou uma equipe, confere se há histórico. Assim
+a API devolve uma mensagem clara em vez do erro de constraint do Oracle.
+
+Os métodos básicos, como save, findById, findAll e deleteById, já vêm do JpaRepository.
 
 ---
 
