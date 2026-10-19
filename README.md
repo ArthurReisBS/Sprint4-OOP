@@ -69,6 +69,28 @@ prioridade.
 
 A API sobe em `http://localhost:8080`.
 
+### 1.4 Testes
+
+```bash
+./mvnw test
+```
+
+Os testes não precisam do Oracle. O perfil test, em src/test/resources, troca o banco por
+um H2 em memória no modo Oracle, criado a partir de uma cópia do script da Sprint 3
+(schema-test.sql). Assim os testes esbarram nas mesmas CHECK, chaves estrangeiras, UNIQUE
+e IDENTITY do banco real.
+
+| Pacote | O que é testado |
+| --- | --- |
+| model | as regras simples das entidades e dos enums, como qual equipe pode executar qual intervenção |
+| service | as validações e o motor de prioridade, com os Repositories simulados pelo Mockito; o motor é conferido com os 9 trechos do script de dados da Sprint 3 |
+| repository | cada derived query e as constraints do banco, contra o H2 |
+| controller | a API inteira com @SpringBootTest e MockMvc, do HTTP até o banco: o status de cada endpoint e o corpo das respostas de erro |
+
+O H2 não reconhece todos os tipos de coluna do Oracle, então no perfil test o ddl-auto
+fica em none. A conferência das Entities contra as tabelas acontece quando a aplicação
+sobe no Oracle.
+
 ---
 
 ## 2. Arquitetura
