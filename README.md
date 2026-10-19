@@ -94,9 +94,13 @@ hierarquia virou uma classe abstrata com `@Inheritance(strategy = SINGLE_TABLE)`
 `@DiscriminatorColumn(name = "TIPO")`. A tabela é a mesma: as duas subclasses continuam
 dividindo `INTERVENCAO_OPERACIONAL`, separadas pela coluna `TIPO`.
 
-**Geração de ID.** _(a preencher: `@SequenceGenerator` com as sequences criadas no banco,
-ou `GenerationType.IDENTITY` porque as tabelas da Sprint 3 usam
-`GENERATED ALWAYS AS IDENTITY`, e o porquê da escolha)_
+**Geração de ID.** O enunciado pede `@SequenceGenerator`, mas as tabelas da Sprint 3 foram
+criadas com `GENERATED ALWAYS AS IDENTITY` e não têm sequence. Como esta sprint reaproveita
+essas tabelas sem alterá-las (`ddl-auto=validate`), as Entities usam
+`@GeneratedValue(strategy = GenerationType.IDENTITY)`: o Oracle continua gerando o ID, como
+já fazia na Sprint 3, e o Hibernate só lê o valor depois do `INSERT`. Usar sequence exigiria
+criar as sequences e tirar o `IDENTITY` das 4 tabelas, ou seja, mudar um schema que já
+funciona só para trocar quem gera o número.
 
 ---
 
