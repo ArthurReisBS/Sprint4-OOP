@@ -110,6 +110,29 @@ class TrechoRodoviaServiceTest {
     }
 
     @Test
+    void criarRecusaMedicaoNoFuturo() {
+        TrechoRodovia trecho = trechoValido();
+        trecho.setDataUltimaMedicao(LocalDate.now().plusDays(3));
+
+        assertThatThrownBy(() -> service.criar(trecho))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("futuro");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void atualizarTambemValidaAsAnotacoes() {
+        TrechoRodovia dados = trechoValido();
+        dados.setAlturaVegetacaoCm(-2.0);
+        when(repository.findById(1L)).thenReturn(Optional.of(trechoValido()));
+
+        assertThatThrownBy(() -> service.atualizar(1L, dados))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("negativa");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
     void buscarIdInexistenteLancaNaoEncontrado() {
         when(repository.findById(42L)).thenReturn(Optional.empty());
 

@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import br.com.motiva.model.EspecieGrama;
 import br.com.motiva.model.TrechoRodovia;
+import jakarta.validation.ConstraintViolationException;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -81,6 +82,17 @@ class TrechoRodoviaRepositoryTest {
         assertThatThrownBy(() -> repository.saveAndFlush(
                 trecho("SP-021", 12.0, EspecieGrama.CYNODON, 1.0, null)))
                 .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void hibernateConfereAsAnotacoesAntesDoInsert() {
+        // gravando direto pelo Repository, sem passar pelo Service: o Hibernate
+        // valida a entidade e nem chega a mandar o INSERT
+        TrechoRodovia negativo = trecho("SP-280", 50.0, EspecieGrama.CYNODON, -1.0, null);
+
+        assertThatThrownBy(() -> repository.saveAndFlush(negativo))
+                .isInstanceOf(ConstraintViolationException.class)
+                .hasMessageContaining("Altura da vegetação não pode ser negativa.");
     }
 
     @Test

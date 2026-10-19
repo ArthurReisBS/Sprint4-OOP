@@ -117,6 +117,19 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void validRespondeTodosOsCamposInvalidosDeUmaVez() throws Exception {
+        mvc.perform(post("/api/trechos").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"rodovia": "", "kmInicial": 12.0, "kmFinal": 18.5,
+                         "alturaVegetacaoCm": -3.0, "dataUltimaMedicao": "2999-01-01"}
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensagem").value("Altura da vegetação não pode ser negativa. "
+                        + "Data da última medição não pode estar no futuro. "
+                        + "Espécie predominante é obrigatória. "
+                        + "Rodovia é obrigatória."));
+    }
+
+    @Test
     void especieQueNaoExisteDevolve400() throws Exception {
         mvc.perform(post("/api/trechos").contentType(MediaType.APPLICATION_JSON)
                         .content(trechoJson(12.0, 22.0).replace("PASPALUM", "GRAMA_AZUL")))
@@ -198,7 +211,17 @@ class ApiIntegrationTest {
         mvc.perform(post("/api/equipes").contentType(MediaType.APPLICATION_JSON).content("""
                         {"nome": "Equipe Vazia", "tipo": "ROCADA", "quantidadeIntegrantes": 0}
                         """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensagem").value("Quantidade de integrantes deve ser de 1 a 999."));
+    }
+
+    @Test
+    void equipeSemOCampoDisponivelNasceDisponivel() throws Exception {
+        mvc.perform(post("/api/equipes").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"nome": "Equipe Eco", "tipo": "MISTA", "quantidadeIntegrantes": 3}
+                        """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.disponivel").value(true));
     }
 
     // ----------------------------------------------------------- intervencoes
@@ -259,6 +282,28 @@ class ApiIntegrationTest {
         mvc.perform(post("/api/intervencoes").contentType(MediaType.APPLICATION_JSON)
                         .content(rocadaJson(1, 1).replace("\"tipo\": \"ROCADA\", ", "")))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void intervencaoComCustoNegativoEDataFuturaDevolve400() throws Exception {
+        mvc.perform(post("/api/intervencoes").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"tipo": "PULVERIZACAO", "trechoId": 1, "equipeId": 1,
+                         "dataExecucao": "2999-01-01", "custo": -1.0}
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensagem").value(
+                        "Custo não pode ser negativo. Data de execução não pode estar no futuro."));
+    }
+
+    @Test
+    void putDeEquipeComNomeEmBrancoDevolve400() throws Exception {
+        long id = criarEquipe("ROCADA");
+
+        mvc.perform(put("/api/equipes/{id}", id).contentType(MediaType.APPLICATION_JSON).content("""
+                        {"nome": " ", "tipo": "ROCADA", "quantidadeIntegrantes": 5}
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensagem").value("Nome da equipe é obrigatório."));
     }
 
     @Test
