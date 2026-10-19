@@ -173,7 +173,89 @@ Mesmo padrão para `/api/trechos`, `/api/equipes` e `/api/intervencoes`:
 | `GET` | `/api/{recurso}/{id}` | `200` | `404` |
 | `POST` | `/api/{recurso}` | `201` + corpo criado | `400` |
 | `PUT` | `/api/{recurso}/{id}` | `200` | `400` · `404` |
-| `DELETE` | `/api/{recurso}/{id}` | `204` | `404` |
+| `DELETE` | `/api/{recurso}/{id}` | `204` | `400` · `404` |
+
+O DELETE de um trecho ou de uma equipe devolve 400 quando há intervenções no histórico,
+porque a chave estrangeira da tabela de intervenções impediria a exclusão.
+
+### Consultas
+
+| Método | Rota | O que devolve |
+| --- | --- | --- |
+| GET | /api/trechos?rodovia=SP-021 | trechos da rodovia, em ordem de km |
+| GET | /api/trechos/prioridade/{prioridade} | trechos de uma faixa (URGENTE, CRITICO, ATENCAO ou NORMAL) pela altura estimada de hoje |
+| GET | /api/equipes?tipo=ROCADA | equipes de um tipo (ROCADA, PULVERIZACAO ou MISTA) |
+| GET | /api/equipes/disponiveis | equipes disponíveis |
+| GET | /api/intervencoes/trecho/{id} | histórico do trecho, em ordem de data |
+| GET | /api/intervencoes/equipe/{id} | intervenções feitas pela equipe |
+| GET | /api/intervencoes/periodo?inicio=AAAA-MM-DD&fim=AAAA-MM-DD | intervenções executadas no período |
+| GET | /api/relatorios/{id} | um relatório do histórico |
+
+### Corpo da intervenção
+
+Trechos e equipes entram e saem da API no formato da própria entidade. A intervenção
+usa DTOs, porque IntervencaoOperacional é uma classe abstrata e o JSON precisa dizer qual
+das duas subclasses criar. Quem decide é o campo tipo, e o trecho e a equipe chegam só
+pelo id:
+
+```json
+{
+  "tipo": "ROCADA",
+  "trechoId": 1,
+  "equipeId": 1,
+  "dataExecucao": "2026-10-19",
+  "custo": 4850.0,
+  "larguraFaixaM": 3.5,
+  "alturaCorteCm": 10.0
+}
+```
+
+Uma pulverização leva os mesmos campos, menos larguraFaixaM e alturaCorteCm. Se eles
+vierem preenchidos, a resposta é 400. A equipe também precisa saber executar aquele tipo
+de serviço: uma equipe de pulverização não registra roçada, enquanto uma equipe mista
+registra as duas.
+
+Na resposta, o trecho e a equipe aparecem resumidos em id e nome, e não como objetos
+inteiros:
+
+```json
+{
+  "id": 10,
+  "tipo": "ROCADA",
+  "descricao": "Roçada de 3,5 m de faixa, corte a 10 cm",
+  "trechoId": 1,
+  "trecho": "SP-021 km 12,0-18,5",
+  "equipeId": 1,
+  "equipe": "Equipe Alfa - Roçada Norte",
+  "dataExecucao": "2026-10-19",
+  "custo": 4850.0,
+  "larguraFaixaM": 3.5,
+  "alturaCorteCm": 10.0
+}
+```
+
+### Erros
+
+Toda resposta de erro tem o mesmo formato, montado pelo GlobalExceptionHandler. Ele
+transforma as exceções dos Services em status HTTP, para os Controllers não precisarem
+de try/catch:
+
+```json
+{
+  "timestamp": "2026-10-19T14:02:11",
+  "status": 404,
+  "erro": "Not Found",
+  "mensagem": "Trecho 9999 não encontrado(a).",
+  "caminho": "/api/trechos/9999"
+}
+```
+
+| Situação | Status |
+| --- | --- |
+| id que não existe | 404 |
+| dado que fere uma regra (altura negativa, km final menor que o inicial, faixa repetida, equipe incompatível) | 400 |
+| JSON mal formado, enum com valor inexistente, data fora do formato AAAA-MM-DD | 400 |
+| id que não é número, parâmetro obrigatório faltando | 400 |
 
 ### Relatório
 
