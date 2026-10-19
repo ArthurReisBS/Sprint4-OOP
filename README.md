@@ -300,8 +300,12 @@ Os métodos básicos, como save, findById, findAll e deleteById, já vêm do Jpa
 
 ## 6. Exemplos com cURL
 
+Os exemplos partem dos dados do script da Sprint 3: os trechos e as equipes têm id de 1 a
+9 e de 1 a 4, e o trecho criado no primeiro exemplo ganha o próximo id livre. Nos
+exemplos ele é o 10; se for outro, troque pelo id que o POST devolver.
+
 ```bash
-# cria um trecho
+# cria um trecho (201)
 curl -i -X POST http://localhost:8080/api/trechos \
   -H "Content-Type: application/json" \
   -d '{
@@ -313,25 +317,63 @@ curl -i -X POST http://localhost:8080/api/trechos \
         "dataUltimaMedicao": "2026-10-10"
       }'
 
-# lista e busca
+# lista, busca e filtra (200)
 curl -i http://localhost:8080/api/trechos
-curl -i http://localhost:8080/api/trechos/1
+curl -i http://localhost:8080/api/trechos/10
+curl -i "http://localhost:8080/api/trechos?rodovia=SP-021"
+curl -i http://localhost:8080/api/trechos/prioridade/URGENTE
 
-# atualiza
-curl -i -X PUT http://localhost:8080/api/trechos/1 \
+# atualiza o trecho criado (200)
+curl -i -X PUT http://localhost:8080/api/trechos/10 \
   -H "Content-Type: application/json" \
   -d '{ "rodovia": "SP-280", "kmInicial": 12.0, "kmFinal": 14.5,
         "especiePredominante": "BRACHIARIA", "alturaVegetacaoCm": 27.0,
         "dataUltimaMedicao": "2026-10-14" }'
 
-# apaga
+# apaga o trecho criado (204); ele não tem histórico
+curl -i -X DELETE http://localhost:8080/api/trechos/10
+
+# trecho que não existe (404)
+curl -i http://localhost:8080/api/trechos/9999
+
+# altura negativa (400)
+curl -i -X POST http://localhost:8080/api/trechos \
+  -H "Content-Type: application/json" \
+  -d '{ "rodovia": "SP-280", "kmInicial": 20.0, "kmFinal": 22.0,
+        "especiePredominante": "CYNODON", "alturaVegetacaoCm": -5.0,
+        "dataUltimaMedicao": "2026-10-10" }'
+
+# equipes de roçada (200)
+curl -i "http://localhost:8080/api/equipes?tipo=ROCADA"
+
+# registra uma roçada no trecho 1 pela Equipe Alfa, que é de roçada (201)
+curl -i -X POST http://localhost:8080/api/intervencoes \
+  -H "Content-Type: application/json" \
+  -d '{ "tipo": "ROCADA", "trechoId": 1, "equipeId": 1,
+        "dataExecucao": "2026-10-19", "custo": 4850.0,
+        "larguraFaixaM": 3.5, "alturaCorteCm": 10.0 }'
+
+# a mesma roçada pela Equipe Charlie, que só pulveriza (400)
+curl -i -X POST http://localhost:8080/api/intervencoes \
+  -H "Content-Type: application/json" \
+  -d '{ "tipo": "ROCADA", "trechoId": 1, "equipeId": 3,
+        "dataExecucao": "2026-10-19", "custo": 4850.0,
+        "larguraFaixaM": 3.5, "alturaCorteCm": 10.0 }'
+
+# histórico do trecho 1 (200)
+curl -i http://localhost:8080/api/intervencoes/trecho/1
+
+# o trecho 1 tem histórico, então não pode ser apagado (400)
 curl -i -X DELETE http://localhost:8080/api/trechos/1
 
-# gera um relatório e consulta o histórico
+# gera um relatório e consulta o histórico (201 e 200)
 curl -i -X POST http://localhost:8080/api/relatorios
 curl -i http://localhost:8080/api/relatorios
 curl -i "http://localhost:8080/api/relatorios/periodo?inicio=2026-10-01&fim=2026-10-31"
 ```
+
+Com os dados do script, o relatório gerado traz 2 trechos urgentes, 2 críticos, 2 em
+atenção e 3 normais, mais o que tiver sido criado pelos exemplos acima.
 
 ---
 
