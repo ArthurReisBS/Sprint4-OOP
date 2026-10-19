@@ -396,16 +396,69 @@ _(a preencher: pelo menos 6 prints, cobrindo CRUD e relatório)_
 
 **1. Por que o Repository é uma interface e não uma classe? Quem escreve a implementação e quando?**
 
-_(a preencher)_
+Porque o Repository só precisa dizer o que quer, e não como fazer. Ao estender
+JpaRepository<TrechoRodovia, Long>, a interface já herda save, findById, findAll,
+deleteById e os outros métodos de CRUD; o que sobra é declarar as buscas próprias, como
+findByRodoviaOrderByKmInicialAsc. Não há nenhuma linha de implementação no projeto.
+
+Quem escreve a implementação é o Spring Data, quando a aplicação sobe. Ao encontrar cada
+interface, ele cria uma classe que a implementa, lê o nome de cada método e monta a
+consulta correspondente. Isso acontece uma vez só, na inicialização: se um nome de método
+apontar para um campo que não existe na entidade, a aplicação nem chega a subir.
+
+Ser interface também ajuda a testar: nos testes dos Services, os Repositories são trocados
+por versões simuladas do Mockito, sem banco nenhum.
 
 **2. O pattern DAO da Sprint 3 "morreu" na migração ou só mudou de forma?**
 
-_(a preencher)_
+Mudou de forma. O papel do DAO continua o mesmo: isolar o acesso ao banco do resto do
+sistema. Os Services desta sprint não sabem que existe SQL; eles chamam o Repository do
+mesmo jeito que o código da Sprint 3 chamava o TrechoRodoviaDAO.
+
+O que desapareceu foi o trabalho manual. Na Sprint 3, cada DAO abria a conexão, montava o
+PreparedStatement, percorria o ResultSet, copiava coluna por coluna para o objeto e fechava
+os recursos. Os quatro DAOs somavam cerca de 900 linhas; os quatro Repositories somam pouco
+mais de 100, quase tudo declaração de método. O mapeamento de coluna para atributo agora
+está nas anotações das entidades, e quem escreve o código de acesso é o Spring Data.
+
+| Sprint 3 (DAO) | Sprint 4 (Repository) |
+| --- | --- |
+| inserir(trecho) | save(trecho) |
+| buscarPorId(id) | findById(id), que devolve Optional em vez de null |
+| listarTodas() | findAll() |
+| listarPorRodovia(rodovia) | findByRodoviaOrderByKmInicialAsc(rodovia) |
+| atualizar(trecho) | save(trecho) com id preenchido |
+| deletar(id) | delete(trecho) ou deleteById(id) |
 
 **3. Por que a validação de `nivelVegetacao >= 0` (Sprint 1) deve ficar no Service e não no Controller?**
 
-_(a preencher)_
+Porque é uma regra do domínio, e não do HTTP. Uma altura de vegetação negativa (nesta
+sprint, o campo alturaVegetacaoCm) é inválida venha o dado de onde vier: de uma requisição
+POST, de uma importação de sensores, de outro Service ou de um teste. Se a validação
+estivesse no Controller, só o caminho HTTP estaria protegido, e qualquer outra entrada
+gravaria o dado errado.
+
+No Service ela fica num lugar só, o método validar do TrechoRodoviaService, chamado tanto
+na criação quanto na atualização. Quando a altura é negativa, ele lança uma
+RegraNegocioException, e o GlobalExceptionHandler a transforma em 400. O Controller nem
+fica sabendo: ele só recebe a requisição, chama o Service e devolve a resposta. Por baixo
+de tudo ainda existe a CHECK ck_trecho_altura do Oracle, como última barreira.
 
 **4. No JDBC puro escrevíamos SQL. Onde está o SQL do `findByTipo()`? Quem o gerou?**
 
-_(a preencher)_
+O SQL não está em nenhum arquivo do projeto. Ele é gerado em duas etapas. Primeiro o
+Spring Data lê o nome findByTipo na inicialização: o prefixo findBy indica uma busca, e
+Tipo é o atributo tipo de EquipeManutencao. Com isso ele monta uma consulta JPQL
+equivalente a "select e from EquipeManutencao e where e.tipo = ?1". Depois, na hora da
+execução, o Hibernate traduz essa consulta para o SQL do Oracle, usando os nomes de tabela
+e de coluna das anotações da entidade. No console ele usa apelidos próprios, como em1_0,
+mas a consulta é esta:
+
+```sql
+select e.id, e.disponivel, e.nome, e.qt_integrantes, e.tipo
+from equipe_manutencao e
+where e.tipo = ?
+```
+
+Como o application.properties tem spring.jpa.show-sql=true, esse SQL aparece no console
+cada vez que o método é chamado.
