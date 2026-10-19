@@ -40,13 +40,26 @@ spring.datasource.password=${DB_PASSWORD}
 
 ### 1.2 Tabelas
 
-As tabelas são as da Sprint 3, então o Hibernate **não cria nem altera schema**. Se elas
-ainda não existirem no seu usuário, rode os scripts primeiro:
+As tabelas são as da Sprint 3, então o Hibernate não cria nem altera o schema. Com
+ddl-auto=validate ele só confere se as Entities batem com as tabelas, e se alguma coluna
+não bater a aplicação não sobe.
+
+Se as tabelas ainda não existirem no seu usuário, rode os dois scripts da Sprint 3 com a
+ferramenta ExecutarScript de lá, que usa as mesmas variáveis de ambiente. Dentro da pasta
+da Sprint 3:
 
 ```bash
-sqlplus $DB_USER/$DB_PASSWORD@oracle.fiap.com.br:1521:ORCL @sql/seu-script-criacao.sql
-sqlplus $DB_USER/$DB_PASSWORD@oracle.fiap.com.br:1521:ORCL @sql/seu-script-dados.sql
+java -cp "bin:lib/ojdbc17.jar" br.com.motiva.ferramentas.ExecutarScript sql/seu-script-criacao.sql
+java -cp "bin:lib/ojdbc17.jar" br.com.motiva.ferramentas.ExecutarScript sql/seu-script-dados.sql
 ```
+
+Na primeira execução os quatro DROP TABLE do começo do script de criação falham, porque
+ainda não há tabela para apagar. É esperado e a ferramenta segue para os CREATE. Também
+dá para abrir os dois arquivos no SQL Developer e rodar como script.
+
+O script de dados cria 4 equipes, 9 trechos, 9 intervenções e 1 relatório. As datas são
+relativas ao dia em que ele roda, então os trechos caem sempre nas mesmas faixas de
+prioridade.
 
 ### 1.3 Executar
 
