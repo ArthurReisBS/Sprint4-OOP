@@ -82,7 +82,7 @@ e IDENTITY do banco real.
 
 | Pacote | O que é testado |
 | --- | --- |
-| model | as regras simples das entidades e dos enums, como qual equipe pode executar qual intervenção |
+| model | as regras simples das entidades e dos enums, como qual equipe pode executar qual intervenção, e as anotações de Bean Validation |
 | service | as validações e o motor de prioridade, com os Repositories simulados pelo Mockito; o motor é conferido com os 9 trechos do script de dados da Sprint 3 |
 | repository | cada derived query e as constraints do banco, contra o H2 |
 | controller | a API inteira com @SpringBootTest e MockMvc, do HTTP até o banco: o status de cada endpoint e o corpo das respostas de erro |
@@ -253,9 +253,41 @@ de try/catch:
 | Situação | Status |
 | --- | --- |
 | id que não existe | 404 |
-| dado que fere uma regra (altura negativa, km final menor que o inicial, faixa repetida, equipe incompatível) | 400 |
+| campo inválido segundo as anotações de Bean Validation (obrigatório vazio, valor negativo, data no futuro) | 400 |
+| dado que fere uma regra entre campos ou do banco (km final menor que o inicial, faixa repetida, equipe incompatível) | 400 |
 | JSON mal formado, enum com valor inexistente, data fora do formato AAAA-MM-DD | 400 |
 | id que não é número, parâmetro obrigatório faltando | 400 |
+
+### Validação
+
+As regras de um campo só estão declaradas com Bean Validation, nas entidades e no
+IntervencaoRequest: @NotBlank e @Size nos textos, @NotNull nos obrigatórios,
+@PositiveOrZero na altura da vegetação e no custo, @Positive na largura e na altura de
+corte da roçada, @PastOrPresent nas datas.
+
+Essas anotações são conferidas em três momentos:
+
+1. No Controller, pelo @Valid do corpo da requisição. Se algum campo falhar, o método
+nem roda, e a resposta 400 traz a mensagem de todos os campos inválidos de uma vez.
+2. No Service, pela classe Validacao, que aplica as mesmas anotações a qualquer chamada,
+venha ela da API ou não.
+3. No Hibernate, antes de cada INSERT e UPDATE, como última conferência do lado do Java.
+
+As regras que comparam campos ou dependem do banco não cabem numa anotação e continuam no
+Service: km final maior que o inicial, faixa repetida, equipe que sabe executar o tipo
+de intervenção, roçada com largura e altura de corte preenchidas, exclusão bloqueada por
+histórico.
+
+Exemplo de um POST /api/trechos com vários campos errados:
+
+```json
+{
+  "status": 400,
+  "erro": "Bad Request",
+  "mensagem": "Altura da vegetação não pode ser negativa. Data da última medição não pode estar no futuro. Espécie predominante é obrigatória. Rodovia é obrigatória.",
+  "caminho": "/api/trechos"
+}
+```
 
 ### Relatório
 
@@ -469,11 +501,16 @@ POST, de uma importação de sensores, de outro Service ou de um teste. Se a val
 estivesse no Controller, só o caminho HTTP estaria protegido, e qualquer outra entrada
 gravaria o dado errado.
 
-No Service ela fica num lugar só, o método validar do TrechoRodoviaService, chamado tanto
-na criação quanto na atualização. Quando a altura é negativa, ele lança uma
-RegraNegocioException, e o GlobalExceptionHandler a transforma em 400. O Controller nem
-fica sabendo: ele só recebe a requisição, chama o Service e devolve a resposta. Por baixo
-de tudo ainda existe a CHECK ck_trecho_altura do Oracle, como última barreira.
+Nesta sprint a regra está declarada uma vez só, como a anotação @PositiveOrZero no campo
+alturaVegetacaoCm da entidade, e quem garante que ela é cumprida é o Service: o método
+validar do TrechoRodoviaService, chamado tanto na criação quanto na atualização, confere
+as anotações e lança uma RegraNegocioException quando a altura é negativa. O
+GlobalExceptionHandler transforma a exceção em 400.
+
+O @Valid do Controller não contradiz isso. Ele só pede que a mesma anotação seja conferida
+mais cedo, para a API responder todos os campos errados de uma vez; a regra continua
+escrita na entidade e aplicada pelo Service, e não no código do Controller. Por baixo de
+tudo ainda existe a CHECK ck_trecho_altura do Oracle, como última barreira.
 
 **4. No JDBC puro escrevíamos SQL. Onde está o SQL do `findByTipo()`? Quem o gerou?**
 
