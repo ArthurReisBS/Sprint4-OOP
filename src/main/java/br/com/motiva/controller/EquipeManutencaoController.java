@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 import br.com.motiva.model.EquipeManutencao;
 import br.com.motiva.model.TipoEquipe;
 import br.com.motiva.service.EquipeManutencaoService;
@@ -45,13 +47,13 @@ public class EquipeManutencaoController {
     }
 
     @PostMapping
-    public ResponseEntity<EquipeManutencao> criar(@RequestBody EquipeManutencao equipe) {
+    public ResponseEntity<EquipeManutencao> criar(@Valid @RequestBody EquipeManutencao equipe) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(equipe));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EquipeManutencao> atualizar(@PathVariable Long id,
-                                                      @RequestBody EquipeManutencao equipe) {
+                                                      @Valid @RequestBody EquipeManutencao equipe) {
         return ResponseEntity.ok(service.atualizar(id, equipe));
     }
 

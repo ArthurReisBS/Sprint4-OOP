@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 import br.com.motiva.dto.IntervencaoRequest;
 import br.com.motiva.dto.IntervencaoResponse;
 import br.com.motiva.model.IntervencaoOperacional;
@@ -65,7 +67,7 @@ public class IntervencaoOperacionalController {
     }
 
     @PostMapping
-    public ResponseEntity<IntervencaoResponse> criar(@RequestBody IntervencaoRequest request) {
+    public ResponseEntity<IntervencaoResponse> criar(@Valid @RequestBody IntervencaoRequest request) {
         IntervencaoOperacional salva =
                 service.criar(request.paraEntidade(), request.trechoId(), request.equipeId());
         return ResponseEntity.status(HttpStatus.CREATED).body(IntervencaoResponse.de(salva));
@@ -73,7 +75,7 @@ public class IntervencaoOperacionalController {
 
     @PutMapping("/{id}")
     public ResponseEntity<IntervencaoResponse> atualizar(@PathVariable Long id,
-                                                         @RequestBody IntervencaoRequest request) {
+                                                         @Valid @RequestBody IntervencaoRequest request) {
         IntervencaoOperacional salva =
                 service.atualizar(id, request.paraEntidade(), request.trechoId(), request.equipeId());
         return ResponseEntity.ok(IntervencaoResponse.de(salva));

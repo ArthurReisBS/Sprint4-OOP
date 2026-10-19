@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 import br.com.motiva.model.Prioridade;
 import br.com.motiva.model.TrechoRodovia;
 import br.com.motiva.service.TrechoRodoviaService;
@@ -50,13 +52,13 @@ public class TrechoRodoviaController {
     }
 
     @PostMapping
-    public ResponseEntity<TrechoRodovia> criar(@RequestBody TrechoRodovia trecho) {
+    public ResponseEntity<TrechoRodovia> criar(@Valid @RequestBody TrechoRodovia trecho) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(trecho));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TrechoRodovia> atualizar(@PathVariable Long id,
-                                                   @RequestBody TrechoRodovia trecho) {
+                                                   @Valid @RequestBody TrechoRodovia trecho) {
         return ResponseEntity.ok(service.atualizar(id, trecho));
     }
 
