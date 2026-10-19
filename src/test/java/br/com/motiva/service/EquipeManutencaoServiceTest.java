@@ -35,7 +35,7 @@ class EquipeManutencaoServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new EquipeManutencaoService(repository, intervencaoRepository);
+        service = new EquipeManutencaoService(repository, intervencaoRepository, ValidacaoDeTeste.criar());
     }
 
     private static EquipeManutencao equipeValida() {

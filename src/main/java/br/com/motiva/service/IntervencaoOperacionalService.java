@@ -20,13 +20,16 @@ public class IntervencaoOperacionalService {
     private final IntervencaoOperacionalRepository repository;
     private final TrechoRodoviaService trechoService;
     private final EquipeManutencaoService equipeService;
+    private final Validacao validacao;
 
     public IntervencaoOperacionalService(IntervencaoOperacionalRepository repository,
                                          TrechoRodoviaService trechoService,
-                                         EquipeManutencaoService equipeService) {
+                                         EquipeManutencaoService equipeService,
+                                         Validacao validacao) {
         this.repository = repository;
         this.trechoService = trechoService;
         this.equipeService = equipeService;
+        this.validacao = validacao;
     }
 
     public List<IntervencaoOperacional> listar() {
@@ -110,14 +113,13 @@ public class IntervencaoOperacionalService {
         intervencao.setEquipe(equipe);
     }
 
-    /** Validacoes que na Sprint 3 ficavam no construtor dos records. */
+    /**
+     * Validacoes que na Sprint 3 ficavam no construtor dos records. As de um
+     * campo so (data, custo) estao anotadas na entidade; aqui ficam as que
+     * dependem da equipe carregada e do tipo da intervencao.
+     */
     private void validar(IntervencaoOperacional intervencao) {
-        if (intervencao.getDataExecucao() == null) {
-            throw new RegraNegocioException("Data de execução é obrigatória.");
-        }
-        if (intervencao.getCusto() < 0) {
-            throw new RegraNegocioException("Custo negativo: " + intervencao.getCusto());
-        }
+        validacao.validar(intervencao);
 
         EquipeManutencao equipe = intervencao.getEquipe();
         if (!equipe.getTipo().podeExecutar(intervencao.getTipo())) {
@@ -126,8 +128,8 @@ public class IntervencaoOperacionalService {
         }
 
         if (intervencao instanceof RocadaMecanizada rocada) {
-            if (rocada.getLarguraFaixaM() == null || rocada.getAlturaCorteCm() == null
-                    || rocada.getLarguraFaixaM() <= 0 || rocada.getAlturaCorteCm() <= 0) {
+            // o @Positive aceita nulo, porque a coluna e da pulverizacao tambem
+            if (rocada.getLarguraFaixaM() == null || rocada.getAlturaCorteCm() == null) {
                 throw new RegraNegocioException(
                         "Roçada exige largura da faixa e altura de corte positivas.");
             }

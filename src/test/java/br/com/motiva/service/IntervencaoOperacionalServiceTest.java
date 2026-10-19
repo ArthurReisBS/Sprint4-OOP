@@ -46,7 +46,8 @@ class IntervencaoOperacionalServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new IntervencaoOperacionalService(repository, trechoService, equipeService);
+        service = new IntervencaoOperacionalService(repository, trechoService, equipeService,
+                ValidacaoDeTeste.criar());
     }
 
     private void comEquipe(TipoEquipe tipo) {

@@ -2,6 +2,11 @@ package br.com.motiva.dto;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+
 import br.com.motiva.exception.RegraNegocioException;
 import br.com.motiva.model.IntervencaoOperacional;
 import br.com.motiva.model.Pulverizacao;
@@ -16,12 +21,26 @@ import br.com.motiva.model.TipoIntervencao;
  * ID, sem o cliente ter de mandar os objetos inteiros.
  */
 public record IntervencaoRequest(
+        @NotNull(message = "Tipo da intervenção é obrigatório (ROCADA ou PULVERIZACAO).")
         TipoIntervencao tipo,
+
+        @NotNull(message = "Trecho é obrigatório.")
         Long trechoId,
+
+        @NotNull(message = "Equipe é obrigatória.")
         Long equipeId,
+
+        @NotNull(message = "Data de execução é obrigatória.")
+        @PastOrPresent(message = "Data de execução não pode estar no futuro.")
         LocalDate dataExecucao,
+
+        @PositiveOrZero(message = "Custo não pode ser negativo.")
         double custo,
+
+        @Positive(message = "Largura da faixa deve ser positiva.")
         Double larguraFaixaM,
+
+        @Positive(message = "Altura de corte deve ser positiva.")
         Double alturaCorteCm
 ) {
 

@@ -17,11 +17,14 @@ public class EquipeManutencaoService {
 
     private final EquipeManutencaoRepository repository;
     private final IntervencaoOperacionalRepository intervencaoRepository;
+    private final Validacao validacao;
 
     public EquipeManutencaoService(EquipeManutencaoRepository repository,
-                                   IntervencaoOperacionalRepository intervencaoRepository) {
+                                   IntervencaoOperacionalRepository intervencaoRepository,
+                                   Validacao validacao) {
         this.repository = repository;
         this.intervencaoRepository = intervencaoRepository;
+        this.validacao = validacao;
     }
 
     public List<EquipeManutencao> listar() {
@@ -46,14 +49,14 @@ public class EquipeManutencaoService {
         // a tabela usa GENERATED ALWAYS AS IDENTITY: um ID vindo do cliente
         // faria o Oracle recusar o INSERT
         equipe.setId(null);
-        validar(equipe);
+        validacao.validar(equipe);
         return repository.save(equipe);
     }
 
     @Transactional
     public EquipeManutencao atualizar(Long id, EquipeManutencao dados) {
         EquipeManutencao existente = buscarPorId(id);
-        validar(dados);
+        validacao.validar(dados);
 
         existente.setNome(dados.getNome());
         existente.setTipo(dados.getTipo());
@@ -72,21 +75,4 @@ public class EquipeManutencaoService {
         repository.delete(equipe);
     }
 
-    /** Validacoes que na Sprint 3 ficavam no construtor do record. */
-    private void validar(EquipeManutencao equipe) {
-        if (equipe.getNome() == null || equipe.getNome().isBlank()) {
-            throw new RegraNegocioException("Nome da equipe é obrigatório.");
-        }
-        if (equipe.getNome().length() > 80) {
-            throw new RegraNegocioException("Nome da equipe passa de 80 caracteres.");
-        }
-        if (equipe.getTipo() == null) {
-            throw new RegraNegocioException("Tipo da equipe é obrigatório.");
-        }
-        int integrantes = equipe.getQuantidadeIntegrantes();
-        if (integrantes <= 0 || integrantes > 999) {
-            throw new RegraNegocioException(
-                    "Equipe precisa de 1 a 999 integrantes, veio " + integrantes + ".");
-        }
-    }
 }

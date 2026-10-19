@@ -38,7 +38,8 @@ class TrechoRodoviaServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TrechoRodoviaService(repository, intervencaoRepository, new PrioridadeService());
+        service = new TrechoRodoviaService(repository, intervencaoRepository, new PrioridadeService(),
+                ValidacaoDeTeste.criar());
     }
 
     private static TrechoRodovia trechoValido() {

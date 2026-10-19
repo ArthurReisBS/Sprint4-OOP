@@ -14,6 +14,9 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.PositiveOrZero;
 
 /**
  * Intervencao executada em um trecho.
@@ -33,17 +36,22 @@ public abstract class IntervencaoOperacional {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Trecho é obrigatório.")
     @ManyToOne(optional = false)
     @JoinColumn(name = "TRECHO_ID", nullable = false)
     private TrechoRodovia trecho;
 
+    @NotNull(message = "Equipe é obrigatória.")
     @ManyToOne(optional = false)
     @JoinColumn(name = "EQUIPE_ID", nullable = false)
     private EquipeManutencao equipe;
 
+    @NotNull(message = "Data de execução é obrigatória.")
+    @PastOrPresent(message = "Data de execução não pode estar no futuro.")
     @Column(name = "DATA_EXECUCAO", nullable = false)
     private LocalDate dataExecucao;
 
+    @PositiveOrZero(message = "Custo não pode ser negativo.")
     @Column(name = "CUSTO", nullable = false, columnDefinition = "NUMBER(10,2)")
     private double custo;
 

@@ -9,6 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 /**
  * Um relatorio gerado, com os contadores por faixa.
@@ -30,18 +32,23 @@ public class RelatorioPrioridade {
     @Column(name = "DATA_GERACAO", nullable = false)
     private LocalDateTime dataGeracao;
 
+    @PositiveOrZero
     @Column(name = "QT_URGENTE", nullable = false, columnDefinition = "NUMBER(5)")
     private int qtUrgente;
 
+    @PositiveOrZero
     @Column(name = "QT_CRITICO", nullable = false, columnDefinition = "NUMBER(5)")
     private int qtCritico;
 
+    @PositiveOrZero
     @Column(name = "QT_ATENCAO", nullable = false, columnDefinition = "NUMBER(5)")
     private int qtAtencao;
 
+    @PositiveOrZero
     @Column(name = "QT_NORMAL", nullable = false, columnDefinition = "NUMBER(5)")
     private int qtNormal;
 
+    @Size(max = TAMANHO_MAXIMO_RESUMO)
     @Column(name = "RESUMO", length = TAMANHO_MAXIMO_RESUMO)
     private String resumo;
 

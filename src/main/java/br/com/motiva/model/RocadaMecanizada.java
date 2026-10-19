@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.validation.constraints.Positive;
 
 /**
  * Corte mecanico da vegetacao.
@@ -17,9 +18,13 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("ROCADA")
 public class RocadaMecanizada extends IntervencaoOperacional {
 
+    // nulo passa aqui; a obrigatoriedade e checada no Service, porque so vale
+    // para a rocada e a coluna e compartilhada com a pulverizacao
+    @Positive(message = "Largura da faixa deve ser positiva.")
     @Column(name = "LARGURA_FAIXA_M", columnDefinition = "NUMBER(5,2)")
     private Double larguraFaixaM;
 
+    @Positive(message = "Altura de corte deve ser positiva.")
     @Column(name = "ALTURA_CORTE_CM", columnDefinition = "NUMBER(5,2)")
     private Double alturaCorteCm;
 

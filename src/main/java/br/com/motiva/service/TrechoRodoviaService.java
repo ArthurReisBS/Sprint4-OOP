@@ -19,13 +19,16 @@ public class TrechoRodoviaService {
     private final TrechoRodoviaRepository repository;
     private final IntervencaoOperacionalRepository intervencaoRepository;
     private final PrioridadeService prioridadeService;
+    private final Validacao validacao;
 
     public TrechoRodoviaService(TrechoRodoviaRepository repository,
                                 IntervencaoOperacionalRepository intervencaoRepository,
-                                PrioridadeService prioridadeService) {
+                                PrioridadeService prioridadeService,
+                                Validacao validacao) {
         this.repository = repository;
         this.intervencaoRepository = intervencaoRepository;
         this.prioridadeService = prioridadeService;
+        this.validacao = validacao;
     }
 
     public List<TrechoRodovia> listar() {
@@ -104,28 +107,15 @@ public class TrechoRodoviaService {
      * Validacoes que na Sprint 3 ficavam no construtor do record.
      *
      * Ficam aqui, e nao no Controller, porque sao regra do dominio: valem para
-     * qualquer porta de entrada, nao so para a requisicao HTTP.
+     * qualquer porta de entrada, nao so para a requisicao HTTP. As de um campo
+     * so estao anotadas na entidade (como a altura >= 0); aqui fica a que
+     * compara dois campos.
      */
     private void validar(TrechoRodovia trecho) {
-        if (trecho.getRodovia() == null || trecho.getRodovia().isBlank()) {
-            throw new RegraNegocioException("Rodovia é obrigatória.");
-        }
-        if (trecho.getRodovia().length() > 20) {
-            throw new RegraNegocioException("Rodovia passa de 20 caracteres.");
-        }
-        if (trecho.getEspeciePredominante() == null) {
-            throw new RegraNegocioException("Espécie predominante é obrigatória.");
-        }
+        validacao.validar(trecho);
         if (trecho.getKmFinal() <= trecho.getKmInicial()) {
             throw new RegraNegocioException("km final (" + trecho.getKmFinal()
                     + ") deve ser maior que o inicial (" + trecho.getKmInicial() + ").");
-        }
-        if (trecho.getAlturaVegetacaoCm() < 0) {
-            throw new RegraNegocioException(
-                    "Altura da vegetação não pode ser negativa: " + trecho.getAlturaVegetacaoCm());
-        }
-        if (trecho.getDataUltimaMedicao() == null) {
-            throw new RegraNegocioException("Data da última medição é obrigatória.");
         }
     }
 }

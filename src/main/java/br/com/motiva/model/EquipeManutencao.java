@@ -11,6 +11,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 /**
  * Equipe de campo que executa as intervencoes.
@@ -23,13 +28,18 @@ public class EquipeManutencao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Nome da equipe é obrigatório.")
+    @Size(max = 80, message = "Nome da equipe passa de 80 caracteres.")
     @Column(name = "NOME", nullable = false, length = 80)
     private String nome;
 
+    @NotNull(message = "Tipo da equipe é obrigatório.")
     @Enumerated(EnumType.STRING)
     @Column(name = "TIPO", nullable = false, length = 20)
     private TipoEquipe tipo;
 
+    @Positive(message = "Quantidade de integrantes deve ser de 1 a 999.")
+    @Max(value = 999, message = "Quantidade de integrantes deve ser de 1 a 999.")
     @Column(name = "QT_INTEGRANTES", nullable = false, columnDefinition = "NUMBER(3)")
     private int quantidadeIntegrantes;
 
